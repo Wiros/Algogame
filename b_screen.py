@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 Y_Size_Const = 80
 X_Size_Const = 60
-
+action_queue = []
 
 class Player():
 	def __init__(self, image, position):
@@ -12,12 +12,9 @@ class Player():
 	def moveto(self, x, y):
 		self.position[0]=x
 		self.position[1]=y
-		screen.blit(self.image,(x*X_Size_Const,y*Y_Size_Const))
+		objects.sort(key = lambda x: x.position[1])
 		for o in objects:
-			if o != self :
-				screen.blit(o.image, (o.position[0]*X_Size_Const, o.position[1]*Y_Size_Const))
-			else:
-				pass
+			screen.blit(o.image, (o.position[0]*X_Size_Const, o.position[1]*Y_Size_Const))
 		pygame.display.update()
 		screen.blit(background, (0,0))
 
@@ -43,9 +40,8 @@ def Objects_init(number):
 	objects = []
 	for i in range(number):
 		objects.append(Player(pygame.image.load("data/player.png").convert(), [0,0]))	# will probably want to load some different images
-
-def Event_handling():
-	i = 0	# not really important
+	
+def handle(p):
 	clock = pygame.time.Clock()	# should probably be in a higher instance
 	while(1):
 		for event in pygame.event.get():
@@ -53,22 +49,29 @@ def Event_handling():
 			if event.type == QUIT:
 				return
 			elif event.type == KEYDOWN and event.key == K_ESCAPE:
-				return
+				return True
 			elif event.type == KEYDOWN and event.key == K_UP:
-				objects[i].moveby(0,-1)
+				p.moveby(0,-1)
 			elif event.type == KEYDOWN and event.key == K_DOWN:
-				objects[i].moveby(0,1)
+				p.moveby(0,1)
 			elif event.type == KEYDOWN and event.key == K_LEFT:
-				objects[i].moveby(-1,0)
+				p.moveby(-1,0)
 			elif event.type == KEYDOWN and event.key == K_RIGHT:
-				objects[i].moveby(1,0)
+				p.moveby(1,0)
 			elif event.type == KEYDOWN and event.key == K_RETURN:
-				i+=1 	# remember to change it in final version
-				if(i == objects.__len__()):
-					i=0
-			else:
-				pass
+				return False
 	clock.tick(60)
+
+def test_handling():
+	action_queue.append(objects[0])
+	action_queue.append(objects[1])
+	action_queue.append(objects[2])
+	while(action_queue):
+		if(handle(action_queue[0])):
+			break
+		action_queue.append(action_queue[0])
+		action_queue.pop(0)
+	action_queue.clear()
 
 pygame.init()
 if not pygame.key:	#	debug; not really important
